@@ -46,6 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.zookeeper_voltpatches.CreateMode;
+import org.apache.zookeeper_voltpatches.KeeperException;
 import org.apache.zookeeper_voltpatches.ZooDefs.Ids;
 import org.apache.zookeeper_voltpatches.ZooKeeper;
 import org.json_voltpatches.JSONArray;
@@ -66,6 +67,8 @@ import org.voltcore.utils.PortGenerator;
 import org.voltcore.utils.ShutdownHooks;
 import org.voltcore.zk.CoreZK;
 import org.voltcore.zk.ZKUtil;
+import org.voltdb.VoltDB;
+import org.voltdb.VoltZK;
 import org.voltdb.probe.MeshProber;
 
 import com.google_voltpatches.common.base.Preconditions;
@@ -90,7 +93,7 @@ public class HostMessenger implements SocketJoiner.JoinHandler, InterfaceToMesse
     private static final VoltLogger m_hostLog = new VoltLogger("HOST");
     private static final VoltLogger m_tmLog = new VoltLogger("TM");
 
-    public static final CopyOnWriteArraySet<Long> VERBOTEN_THREADS = new CopyOnWriteArraySet<Long>();
+    public static final CopyOnWriteArraySet<Long> VERBOTEN_THREADS = new CopyOnWriteArraySet<>();
 
     /**
      * Callback for watching for host failures.
@@ -589,7 +592,7 @@ public class HostMessenger implements SocketJoiner.JoinHandler, InterfaceToMesse
             /*
              * A set containing just the leader (this node)
              */
-            HashSet<Long> agreementSites = new HashSet<Long>();
+            HashSet<Long> agreementSites = new HashSet<>();
             agreementSites.add(agreementHSId);
 
             /*
@@ -937,7 +940,7 @@ public class HostMessenger implements SocketJoiner.JoinHandler, InterfaceToMesse
         /*
          * Construct the set of agreement sites based on all the hosts that are connected
          */
-        HashSet<Long> agreementSites = new HashSet<Long>();
+        HashSet<Long> agreementSites = new HashSet<>();
         agreementSites.add(agreementHSId);
 
         m_network.start();//network must be running for register to work
@@ -1059,6 +1062,25 @@ public class HostMessenger implements SocketJoiner.JoinHandler, InterfaceToMesse
 
         assert hostGroups.size() == expectedHosts;
         return hostGroups;
+    }
+
+
+    public void registerSitesPerHostToZK(int sitesperhost) {
+        try {
+            ZKUtil.addIfMissing(m_zk, VoltZK.sitesPerHost, CreateMode.PERSISTENT, new byte[0]);
+        } catch (Exception e) {
+            VoltDB.crashLocalVoltDB("Unable to create " + VoltZK.sitesPerHost + " node to Zookeeper, dying", false, e);
+        }
+        String path = ZKUtil.joinZKPath(VoltZK.sitesPerHost, String.valueOf(m_localHostId));
+        try {
+            ByteBuffer b = ByteBuffer.allocate(4);
+            b.putInt(sitesperhost);
+            m_zk.create(path, b.array(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        } catch (KeeperException.NodeExistsException e) {
+            m_hostLog.info("Zookeeper node " + path + "already exists");
+        } catch (Exception e) {
+            VoltDB.crashLocalVoltDB("Unable to write sitePerHost to ZK, dying", false, e);
+        }
     }
 
     public boolean isPaused() {
@@ -1288,13 +1310,13 @@ public class HostMessenger implements SocketJoiner.JoinHandler, InterfaceToMesse
         assert(message != null);
         assert(destinationHSIds != null);
         final HashMap<ForeignHost, ArrayList<Long>> foreignHosts =
-            new HashMap<ForeignHost, ArrayList<Long>>(32);
+            new HashMap<>(32);
         for (long hsId : destinationHSIds) {
             ForeignHost host = presend(hsId, message);
             if (host == null) continue;
             ArrayList<Long> bundle = foreignHosts.get(host);
             if (bundle == null) {
-                bundle = new ArrayList<Long>();
+                bundle = new ArrayList<>();
                 foreignHosts.put(host, bundle);
             }
             bundle.add(hsId);
@@ -1447,7 +1469,7 @@ public class HostMessenger implements SocketJoiner.JoinHandler, InterfaceToMesse
     public Map<Long, Pair<String, long[]>>
         getIOStats(final boolean interval) throws InterruptedException, ExecutionException {
         final ImmutableMap<Integer, ForeignHost> fhosts = m_foreignHosts;
-        ArrayList<IOStatsIntf> picoNetworks = new ArrayList<IOStatsIntf>(fhosts.size());
+        ArrayList<IOStatsIntf> picoNetworks = new ArrayList<>(fhosts.size());
 
         for (ForeignHost fh : fhosts.values()) {
             picoNetworks.add(fh.m_network);
