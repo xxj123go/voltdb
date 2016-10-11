@@ -1076,6 +1076,7 @@ public class HostMessenger implements SocketJoiner.JoinHandler, InterfaceToMesse
             ByteBuffer b = ByteBuffer.allocate(4);
             b.putInt(sitesperhost);
             m_zk.create(path, b.array(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            System.out.println("Write sph " + sitesperhost + " to " + path);
         } catch (KeeperException.NodeExistsException e) {
             m_hostLog.info("Zookeeper node " + path + "already exists");
         } catch (Exception e) {
@@ -1338,6 +1339,7 @@ public class HostMessenger implements SocketJoiner.JoinHandler, InterfaceToMesse
     public void waitForAllHostsToBeReady(int expectedHosts) {
         m_localhostReady = true;
         try {
+            System.out.println("create /core/readyhosts/host node");
             m_zk.create(CoreZK.readyhosts_host, null, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
             while (true) {
                 ZKUtil.FutureWatcher fw = new ZKUtil.FutureWatcher();

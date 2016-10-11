@@ -212,9 +212,9 @@ public class HostCriteria {
         if (!m_meshHash.equals(o.m_meshHash)) {
             ilb.add("Mismatched list of hosts given at database startup");
         }
-        if (!m_configHash.equals(o.m_configHash)) {
-            ilb.add("Servers are initialized with deployment options that do not match");
-        }
+//        if (!m_configHash.equals(o.m_configHash)) {
+//            ilb.add("Servers are initialized with deployment options that do not match");
+//        }
         return ilb.build();
     }
 

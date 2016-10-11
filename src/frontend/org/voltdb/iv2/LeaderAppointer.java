@@ -85,7 +85,7 @@ public class LeaderAppointer implements Promotable
     private final JSONObject m_topo;
     private final MpInitiator m_MPI;
     private final AtomicReference<AppointerState> m_state =
-        new AtomicReference<AppointerState>(AppointerState.INIT);
+        new AtomicReference<>(AppointerState.INIT);
     private SettableFuture<Object> m_startupLatch = null;
     private final AtomicBoolean m_replayComplete = new AtomicBoolean(false);
     private final boolean m_expectingDrSnapshot;
@@ -128,7 +128,7 @@ public class LeaderAppointer implements Promotable
             m_partitionId = partitionId;
             // A bit of a hack, but we should never end up with an HSID as Long.MAX_VALUE
             m_currentLeader = Long.MAX_VALUE;
-            m_replicas = new HashSet<Long>();
+            m_replicas = new HashSet<>();
         }
 
         @Override
@@ -136,11 +136,11 @@ public class LeaderAppointer implements Promotable
         {
             List<Long> updatedHSIds = VoltZK.childrenToReplicaHSIds(children);
             // compute previously unseen HSId set in the callback list
-            Set<Long> newHSIds = new HashSet<Long>(updatedHSIds);
+            Set<Long> newHSIds = new HashSet<>(updatedHSIds);
             newHSIds.removeAll(m_replicas);
             tmLog.debug("Newly seen replicas: " + CoreUtils.hsIdCollectionToString(newHSIds));
             // compute previously seen but now vanished from the callback list HSId set
-            Set<Long> missingHSIds = new HashSet<Long>(m_replicas);
+            Set<Long> missingHSIds = new HashSet<>(m_replicas);
             missingHSIds.removeAll(updatedHSIds);
             tmLog.debug("Newly dead replicas: " + CoreUtils.hsIdCollectionToString(missingHSIds));
 
@@ -163,6 +163,7 @@ public class LeaderAppointer implements Promotable
                         int pid = aPartition.getInt("partition_id");
                         if (pid == m_partitionId) {
                             replicaCount = aPartition.getJSONArray("replicas").length();
+                            break;
                         }
                     }
                 } catch (JSONException e) {
@@ -177,7 +178,7 @@ public class LeaderAppointer implements Promotable
                 }
             }
             else {
-                Set<Integer> hostsOnRing = new HashSet<Integer>();
+                Set<Integer> hostsOnRing = new HashSet<>();
                 // Check for k-safety
                 if (!isClusterKSafe(hostsOnRing)) {
                     VoltDB.crashGlobalVoltDB("Some partitions have no replicas.  Cluster has become unviable.",
@@ -215,7 +216,7 @@ public class LeaderAppointer implements Promotable
     {
         @Override
         public void run(ImmutableMap<Integer, Long> cache) {
-            Set<Long> currentLeaders = new HashSet<Long>(cache.values());
+            Set<Long> currentLeaders = new HashSet<>(cache.values());
             tmLog.debug("Updated leaders: " + currentLeaders);
             if (m_state.get() == AppointerState.CLUSTER_START) {
                 try {
@@ -275,8 +276,8 @@ public class LeaderAppointer implements Promotable
         m_topo = topology;
         m_MPI = mpi;
         m_initialPartitionCount = numberOfPartitions;
-        m_callbacks = new HashMap<Integer, PartitionCallback>();
-        m_partitionWatchers = new HashMap<Integer, BabySitter>();
+        m_callbacks = new HashMap<>();
+        m_partitionWatchers = new HashMap<>();
         m_iv2appointees = new LeaderCache(m_zk, VoltZK.iv2appointees);
         m_iv2masters = new LeaderCache(m_zk, VoltZK.iv2masters, m_masterCallback);
         m_stats = stats;
@@ -392,7 +393,7 @@ public class LeaderAppointer implements Promotable
             //We are only racing with ourselves in that the creation of a babysitter can trigger callbacks
             //that result in partitions being cleaned up. We don't have to worry about some other leader appointer.
             //The iteration order of the partitions doesn't matter
-            m_removedPartitionsAtPromotionTime = new HashSet<Integer>();
+            m_removedPartitionsAtPromotionTime = new HashSet<>();
 
             for (Entry<Integer, Long> master : masters.entrySet()) {
 
@@ -470,6 +471,7 @@ public class LeaderAppointer implements Promotable
                     int pid = aPartition.getInt("partition_id");
                     if (pid == partitionId) {
                         masterHostId = aPartition.getInt("master");
+                        break;
                     }
                 }
             }
@@ -521,8 +523,8 @@ public class LeaderAppointer implements Promotable
         }
 
         //Don't fetch the values serially do it asynchronously
-        Queue<ZKUtil.ByteArrayCallback> dataCallbacks = new ArrayDeque<ZKUtil.ByteArrayCallback>();
-        Queue<ZKUtil.ChildrenCallback> childrenCallbacks = new ArrayDeque<ZKUtil.ChildrenCallback>();
+        Queue<ZKUtil.ByteArrayCallback> dataCallbacks = new ArrayDeque<>();
+        Queue<ZKUtil.ChildrenCallback> childrenCallbacks = new ArrayDeque<>();
         for (String partitionDir : partitionDirs) {
             String dir = ZKUtil.joinZKPath(VoltZK.leaders_initiators, partitionDir);
             try {
