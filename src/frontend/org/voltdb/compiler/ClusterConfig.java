@@ -55,7 +55,7 @@ public class ClusterConfig
 
     public static List<Integer> partitionsForHost(JSONObject topo, int hostId, boolean onlyMasters) throws JSONException
     {
-        List<Integer> partitions = new ArrayList<Integer>();
+        List<Integer> partitions = new ArrayList<>();
 
         JSONArray parts = topo.getJSONArray("partitions");
 
@@ -243,7 +243,7 @@ public class ClusterConfig
 
     private static class Partition {
         private Node m_master;
-        private final Set<Node> m_replicas = new HashSet<Node>();
+        private final Set<Node> m_replicas = new HashSet<>();
         private final Integer m_partitionId;
 
         private int m_neededReplicas;
@@ -287,9 +287,9 @@ public class ClusterConfig
     }
 
     private static class Node implements Comparable {
-        Set<Partition> m_masterPartitions = new HashSet<Partition>();
-        Set<Partition> m_replicaPartitions = new HashSet<Partition>();
-        Map<Node, Integer> m_replicationConnections = new HashMap<Node, Integer>();
+        Set<Partition> m_masterPartitions = new HashSet<>();
+        Set<Partition> m_replicaPartitions = new HashSet<>();
+        Map<Node, Integer> m_replicationConnections = new HashMap<>();
         Integer m_hostId;
         final String[] m_group;
 
@@ -519,10 +519,10 @@ public class ClusterConfig
         }
 
         HashMap<Integer, ArrayList<Integer>> partToHosts =
-            new HashMap<Integer, ArrayList<Integer>>();
+            new HashMap<>();
         for (int i = 0; i < partitionCount; i++)
         {
-            ArrayList<Integer> hosts = new ArrayList<Integer>();
+            ArrayList<Integer> hosts = new ArrayList<>();
             partToHosts.put(i, hosts);
         }
         for (int i = 0; i < getTotalSitesCount(); i++) {
@@ -536,6 +536,10 @@ public class ClusterConfig
         // the leader assignment magic in the loop below will work.
         for (Map.Entry<Integer, ArrayList<Integer>> e : partToHosts.entrySet()) {
             Collections.sort(e.getValue());
+        }
+
+        if (!checkKSafetyConstraint(partToHosts, m_replicationFactor  + 1)) {
+            VoltDB.crashLocalVoltDB("Unable to find feasible partition replica assignment for the specified configuration");
         }
 
         JSONStringer stringer = new JSONStringer();
@@ -574,6 +578,17 @@ public class ClusterConfig
     }
 
     /**
+     * Each partition should has K different replica
+     */
+    public static boolean checkKSafetyConstraint(
+            HashMap<Integer, ArrayList<Integer>> partToHosts,
+            int kfactor)
+    {
+        return partToHosts.entrySet().stream().allMatch(
+                v -> kfactor == Sets.newHashSet(v.getValue()).size());
+    }
+
+    /**
      * Placement strategy that attempts to distribute replicas across different
      * groups and also involve multiple nodes in replication so that the socket
      * between nodes is not a bottleneck.
@@ -590,7 +605,7 @@ public class ClusterConfig
         final PhysicalTopology phys = new PhysicalTopology(hostGroups);
         final List<Node> allNodes = MiscUtils.zip(phys.getAllHosts());
 
-        List<Partition> partitions = new ArrayList<Partition>();
+        List<Partition> partitions = new ArrayList<>();
         for (int ii = 0; ii < partitionCount; ii++) {
             partitions.add(new Partition(ii, getReplicationFactor() + 1));
         }

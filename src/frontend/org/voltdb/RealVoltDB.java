@@ -36,7 +36,6 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1096,12 +1095,10 @@ public class RealVoltDB implements VoltDBInterface, RestoreAgent.Callback, HostM
                 }
                 m_clientInterface = ClientInterface.create(m_messenger, m_catalogContext, m_config.m_replicationRole,
                         m_cartographer,
-                        m_configuredNumberOfPartitions,
                         clientIntf,
                         config.m_port,
                         adminIntf,
-                        config.m_adminPort,
-                        m_config.m_timestampTestingSalt);
+                        config.m_adminPort);
             } catch (Exception e) {
                 VoltDB.crashLocalVoltDB(e.getMessage(), true, e);
             }
@@ -1589,22 +1586,11 @@ public class RealVoltDB implements VoltDBInterface, RestoreAgent.Callback, HostM
             topo = joinCoordinator.getTopology();
         }
         else if (!startAction.doesRejoin()) {
-            Map<Integer, Integer> sphMap = new HashMap<>();
-            try {
-                List<String> children = m_messenger.getZK().getChildren(VoltZK.sitesPerHost, false);
-                for (String child : children) {
-                    byte[] payload = m_messenger.getZK().getData(
-                            ZKUtil.joinZKPath(VoltZK.sitesPerHost, child), false, new Stat());
-                    int sitesperhost = ByteBuffer.wrap(payload).getInt();
-                    int hostId = Integer.parseInt(child);
-                    sphMap.put(hostId, sitesperhost);
-                }
-            } catch (Exception e) {
-                VoltDB.crashGlobalVoltDB("Unable to get sitesperhost from Zookeeper", false, e);
-            }
             int hostcount = m_clusterSettings.get().hostcount();
             int kfactor = m_catalogContext.getDeployment().getCluster().getKfactor();
-            ClusterConfig clusterConfig = new ClusterConfig(hostcount, sphMap, kfactor);
+            ClusterConfig clusterConfig = new ClusterConfig(hostcount,
+                                                            m_messenger.getSitesPerHostFromZK(),
+                                                            kfactor);
             if (!clusterConfig.validate()) {
                 VoltDB.crashLocalVoltDB(clusterConfig.getErrorMsg(), false, null);
             }

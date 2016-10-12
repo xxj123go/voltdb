@@ -78,16 +78,16 @@ public class SnapshotSaveAPI
     // The four items containing createSetup artifacts below are all synchronized on m_createLock.
     private static final Object m_createLock = new Object();
     private static final Map<Long, Deque<SnapshotTableTask>> m_taskListsForHSIds =
-        new HashMap<Long, Deque<SnapshotTableTask>>();
-    private static final AtomicReference<VoltTable> m_createResult = new AtomicReference<VoltTable>();
+        new HashMap<>();
+    private static final AtomicReference<VoltTable> m_createResult = new AtomicReference<>();
     private static final AtomicBoolean m_createSuccess = new AtomicBoolean(false);
     private static ListenableFuture<DeferredSnapshotSetup> m_deferredSetupFuture = null;
 
     //Protected by SnapshotSiteProcessor.m_snapshotCreateLock when accessed from SnapshotSaveAPI.startSnanpshotting
     private static Map<Integer, Long> m_partitionLastSeenTransactionIds =
-            new HashMap<Integer, Long>();
+            new HashMap<>();
     private static Map<Integer, JSONObject> m_remoteDataCenterLastIds =
-            new HashMap<Integer, JSONObject>();
+            new HashMap<>();
 
     private static ExtensibleSnapshotDigestData m_allLocalSiteSnapshotDigestData;
     /**
@@ -115,7 +115,10 @@ public class SnapshotSaveAPI
     {
         TRACE_LOG.trace("Creating snapshot target and handing to EEs");
         final VoltTable result = SnapshotUtil.constructNodeResultsTable();
-        final int numLocalSites = context.getCluster().getDeployment().get("deployment").getSitesperhost();
+        final int numLocalSites = VoltDB.instance().getHostMessenger().getLocalSitesCount();
+        if (numLocalSites == -1) {
+            throw new RuntimeException("Failed to get number of local sites for host" + VoltDB.instance().getHostMessenger().getHostId());
+        }
         JSONObject jsData = null;
         if (data != null && !data.isEmpty()) {
             try {
@@ -149,11 +152,11 @@ public class SnapshotSaveAPI
                     Map<Integer, Long> partitionTransactionIds = m_partitionLastSeenTransactionIds;
 
                     SNAP_LOG.debug("Last seen partition transaction ids " + partitionTransactionIds);
-                    m_partitionLastSeenTransactionIds = new HashMap<Integer, Long>();
+                    m_partitionLastSeenTransactionIds = new HashMap<>();
                     partitionTransactionIds.put(TxnEgo.getPartitionId(multiPartTxnId), multiPartTxnId);
 
                     Map<Integer, JSONObject> remoteDataCenterLastIds = m_remoteDataCenterLastIds;
-                    m_remoteDataCenterLastIds = new HashMap<Integer, JSONObject>();
+                    m_remoteDataCenterLastIds = new HashMap<>();
 
                     /*
                      * Do a quick sanity check that the provided IDs
