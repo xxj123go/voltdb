@@ -809,8 +809,13 @@ public class RealVoltDB implements VoltDBInterface, RestoreAgent.Callback, HostM
             }
 
             // Write local sitesPerHost to ZK
-            int sitesperhost = readDepl.deployment.getCluster().getSitesperhost();
-            m_messenger.registerSitesPerHostToZK(sitesperhost);
+            if (config.m_sitesperhost == VoltDB.UNDEFINED) {
+                config.m_sitesperhost = readDepl.deployment.getCluster().getSitesperhost();
+            } else {
+                hostLog.info("CLI overrides sitesperhost setting to " + config.m_sitesperhost);
+                consoleLog.info("CLI overrides sitesperhost setting to " + config.m_sitesperhost);
+            }
+            m_messenger.registerSitesPerHostToZK(config.m_sitesperhost);
 
             if (!isRejoin && !m_joining) {
                 hostGroups = m_messenger.waitForGroupJoin(numberOfNodes);
@@ -925,7 +930,7 @@ public class RealVoltDB implements VoltDBInterface, RestoreAgent.Callback, HostM
                 List<Integer> partitions = null;
                 if (isRejoin) {
                     m_configuredNumberOfPartitions = m_cartographer.getPartitionCount();
-                    int sitesPerHost = clusterConfig.getSitesPerHostMap().get(m_messenger.getHostId());
+                    int sitesPerHost = m_messenger.getLocalSitesCount();
                     partitions = m_cartographer.getIv2PartitionsToReplace(m_configuredReplicationFactor,
                                                                           sitesPerHost);
                     if (partitions.size() == 0) {
