@@ -125,6 +125,27 @@ public class ClusterConfig
         }
     }
 
+    /**
+     * Add new sitesperhost mapping to the toplogy
+     * @param topo              The topology that will be added to.
+     * @param joinedHostIds     Host ids that are elastically joining into cluster.
+     * @param sphMap            A map of host ids to their sitesperhost setting
+     * @throws JSONException
+     */
+    public static void addSitesPerHosts(JSONObject topo,
+                                        Collection<Integer> joinedHostIds,
+                                        Map<Integer, Integer> sphMap)
+        throws JSONException
+    {
+        JSONArray hostIdToSph = topo.getJSONArray("host_id_to_sph");
+        for (Integer hostId : joinedHostIds) {
+            JSONObject sphObj = new JSONObject();
+            sphObj.put("host_id", hostId);
+            sphObj.put("sites_per_host", sphMap.get(hostId));
+            hostIdToSph.put(sphObj);
+        }
+    }
+
     public ClusterConfig(int hostCount, Map<Integer, Integer> sitesPerHostMap, int replicationFactor)
     {
         m_hostCount = hostCount;
