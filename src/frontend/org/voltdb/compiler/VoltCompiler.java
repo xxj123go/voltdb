@@ -676,7 +676,12 @@ public class VoltCompiler {
             Deployment deployment = catalogContext != null ? catalogContext.cluster.getDeployment().get("deployment") : null;
             int hostcount = clusterSettings != null ? clusterSettings.hostcount() : 1;
             int kfactor = deployment != null ? deployment.getKfactor() : 0;
-            int localSitesCount = voltdb != null? voltdb.getHostMessenger().getLocalSitesCount() : -1;
+            int localSitesCount;
+            if  (voltdb != null && voltdb.getHostMessenger() != null) {
+                localSitesCount = voltdb.getHostMessenger().getLocalSitesCount();
+            } else {
+                localSitesCount = -1;
+            }
             int sitesPerHost = localSitesCount != -1 ? localSitesCount : 8;
             boolean isPro = MiscUtils.isPro();
 
