@@ -128,7 +128,7 @@ public class CommandLine extends VoltDB.Configuration
         cl.m_newCli = m_newCli;
         // deep copy the property map if it exists
         if (javaProperties != null) {
-            cl.javaProperties = new TreeMap<String, String>();
+            cl.javaProperties = new TreeMap<>();
             for (Entry<String, String> e : javaProperties.entrySet()) {
                 cl.javaProperties.put(e.getKey(), e.getValue());
             }
@@ -488,7 +488,7 @@ public class CommandLine extends VoltDB.Configuration
     public CommandLine setJavaProperty(String property, String value)
     {
         if (javaProperties == null) {
-            javaProperties = new TreeMap<String, String>();
+            javaProperties = new TreeMap<>();
         }
         javaProperties.put(property, value);
         return this;
@@ -537,7 +537,7 @@ public class CommandLine extends VoltDB.Configuration
 
     // Return a command line list compatible with ProcessBuilder.command()
     public List<String> createCommandLine() {
-        List<String> cmdline = new ArrayList<String>(50);
+        List<String> cmdline = new ArrayList<>(50);
         cmdline.add(javaExecutable);
         cmdline.add("-XX:+HeapDumpOnOutOfMemoryError");
         cmdline.add("-Dsun.net.inetaddr.ttl=300");
@@ -632,7 +632,7 @@ public class CommandLine extends VoltDB.Configuration
         //
         // Process JVM options passed through the VOLTDB_OPTS environment variable
         //
-        List<String> additionalJvmOptions = new ArrayList<String>();
+        List<String> additionalJvmOptions = new ArrayList<>();
         String nonJvmOptions = AdditionalJvmOptionsProcessor
                 .getJvmOptionsFromVoltDbOptsEnvironmentVariable(additionalJvmOptions);
         cmdline.addAll(additionalJvmOptions);
@@ -759,6 +759,11 @@ public class CommandLine extends VoltDB.Configuration
             cmdline.add("paused");
         }
 
+        if (m_sitesperhost != VoltDB.UNDEFINED) {
+            cmdline.add("sitesperhost");
+            cmdline.add(Integer.toString(m_sitesperhost));
+        }
+
         //Add mesh and hostcount for probe only.
         if (m_startAction == StartAction.PROBE) {
             cmdline.add("mesh"); cmdline.add(Joiner.on(',').skipNulls().join(m_coordinators));
@@ -826,7 +831,7 @@ public class CommandLine extends VoltDB.Configuration
          * @return an argument array representing the specified command line.
          */
         public static String[] tokenize(String commandLine) {
-            List<String> resultBuffer = new java.util.ArrayList<String>();
+            List<String> resultBuffer = new java.util.ArrayList<>();
 
             if (commandLine != null) {
                 int z = commandLine.length();
@@ -889,7 +894,7 @@ public class CommandLine extends VoltDB.Configuration
         /**
          * Options which may not be specified in VOLTDB_OPTS
          */
-        static final Set<String> mayNotSpecify = new HashSet<String>(
+        static final Set<String> mayNotSpecify = new HashSet<>(
                 Arrays.<String>asList(
                         "-cp",
                         "-classpath",
@@ -906,7 +911,7 @@ public class CommandLine extends VoltDB.Configuration
          * Options that may be otherwise specified though documented
          * VoltDB options
          */
-        static final Set<String> mayOtherwiseSpecify = new HashSet<String>(
+        static final Set<String> mayOtherwiseSpecify = new HashSet<>(
                 Arrays.<String>asList(
                         "-Dlog4j.configuration",
                         "-Xm",
@@ -918,7 +923,7 @@ public class CommandLine extends VoltDB.Configuration
         /**
          * Options that have a follow up that needs to be also ignored
          */
-        static final Set<String> requiresSkipNext = new HashSet<String>(
+        static final Set<String> requiresSkipNext = new HashSet<>(
                 Arrays.<String>asList(
                         "-cp",
                         "-classpath"
@@ -974,7 +979,7 @@ public class CommandLine extends VoltDB.Configuration
             }
 
             boolean skipNext = false;
-            List<String> nonJvmOptions = new ArrayList<String>();
+            List<String> nonJvmOptions = new ArrayList<>();
 
             for( String option: CommandLineTokenizer.tokenize(voltDbOpts)) {
                 if( skipNext) {
