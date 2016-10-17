@@ -1100,6 +1100,21 @@ public class HostMessenger implements SocketJoiner.JoinHandler, InterfaceToMesse
         return sphMap;
     }
 
+    public void waitForAllSitesPerHostToBeRegistered(int expectedHosts)
+    {
+        while (true) {
+            ZKUtil.FutureWatcher fw = new ZKUtil.FutureWatcher();
+            try {
+                if (m_zk.getChildren(VoltZK.sitesPerHost, fw).size() == expectedHosts) {
+                    break;
+                }
+                fw.get();
+            } catch (Exception e) {
+                org.voltdb.VoltDB.crashLocalVoltDB("Error waiting for all hosts to register their sitesperhost", false, e);
+            }
+        }
+    }
+
     public void registerSitesPerHostToZK(int sitesperhost) {
         try {
             ZKUtil.addIfMissing(m_zk, VoltZK.sitesPerHost, CreateMode.PERSISTENT, new byte[0]);

@@ -45,6 +45,7 @@ import org.voltdb.utils.CommandLine;
 import org.voltdb.utils.MiscUtils;
 import org.voltdb.utils.VoltFile;
 
+import com.google.common.collect.Maps;
 import com.google_voltpatches.common.collect.ImmutableSortedSet;
 
 /**
@@ -271,6 +272,10 @@ public class LocalCluster implements VoltServerConfig {
 
         m_siteCount = siteCount;
         m_hostCount = hostCount;
+        m_sitesperhostOverrides = Maps.newHashMap();
+        for (int hostId = 0; hostId < hostCount; hostId++) {
+            m_sitesperhostOverrides.put(hostId, m_siteCount);
+        }
         templateCmdLine.hostCount(hostCount);
         templateCmdLine.setNewCli(isNewCli);
         if (kfactor > 0 && !MiscUtils.isPro()) {

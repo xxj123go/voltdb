@@ -1593,6 +1593,7 @@ public class RealVoltDB implements VoltDBInterface, RestoreAgent.Callback, HostM
         else if (!startAction.doesRejoin()) {
             int hostcount = m_clusterSettings.get().hostcount();
             int kfactor = m_catalogContext.getDeployment().getCluster().getKfactor();
+            m_messenger.waitForAllSitesPerHostToBeRegistered(hostcount);
             ClusterConfig clusterConfig = new ClusterConfig(hostcount,
                                                             m_messenger.getSitesPerHostFromZK(),
                                                             kfactor);
