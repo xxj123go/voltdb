@@ -66,7 +66,7 @@ public class TestClusterCompiler extends TestCase
             assertEquals(0, partition.getInt("partition_id"));
             JSONArray replicas = partition.getJSONArray("replicas");
             assertEquals(3, replicas.length());
-            HashSet<Integer> replicasContents = new HashSet<Integer>();
+            HashSet<Integer> replicasContents = new HashSet<>();
             for (int zz = 0; zz < replicas.length(); zz++) {
                 replicasContents.add(replicas.getInt(zz));
             }
@@ -111,7 +111,15 @@ public class TestClusterCompiler extends TestCase
         topology.put(0, "0");
         JSONObject topo = config.getTopology(topology);
         assertEquals(1, topo.getInt("hostcount"));
-        assertEquals(6, topo.getInt("sites_per_host"));
+        int size = topo.getJSONArray("host_id_to_sph").length();
+        assertEquals(sphMap.size(), size);
+        for (int ii = 0; ii < size; ii++) {
+            JSONObject sphObj = topo.getJSONArray("host_id_to_sph").getJSONObject(ii);
+            int hostId = sphObj.getInt("host_id");
+            int sph = sphObj.getInt("sites_per_host");
+            assertTrue(sphMap.containsKey(hostId));
+            assertTrue(sphMap.get(hostId) == sph);
+        }
         assertEquals(0, topo.getInt("kfactor"));
         assertEquals(6, topo.getJSONArray("partitions").length());
 
@@ -131,7 +139,15 @@ public class TestClusterCompiler extends TestCase
         topology.put(1, "0");
         JSONObject topo = config.getTopology(topology);
         assertEquals(2, topo.getInt("hostcount"));
-        assertEquals(6, topo.getInt("sites_per_host"));
+        int size = topo.getJSONArray("host_id_to_sph").length();
+        assertEquals(sphMap.size(), size);
+        for (int ii = 0; ii < size; ii++) {
+            JSONObject sphObj = topo.getJSONArray("host_id_to_sph").getJSONObject(ii);
+            int hostId = sphObj.getInt("host_id");
+            int sph = sphObj.getInt("sites_per_host");
+            assertTrue(sphMap.containsKey(hostId));
+            assertTrue(sphMap.get(hostId) == sph);
+        }
         assertEquals(0, topo.getInt("kfactor"));
         assertEquals(12, topo.getJSONArray("partitions").length());
 
@@ -153,7 +169,15 @@ public class TestClusterCompiler extends TestCase
         topology.put(1, "0");
         JSONObject topo = config.getTopology(topology);
         assertEquals(2, topo.getInt("hostcount"));
-        assertEquals(6, topo.getInt("sites_per_host"));
+        int size = topo.getJSONArray("host_id_to_sph").length();
+        assertEquals(sphMap.size(), size);
+        for (int ii = 0; ii < size; ii++) {
+            JSONObject sphObj = topo.getJSONArray("host_id_to_sph").getJSONObject(ii);
+            int hostId = sphObj.getInt("host_id");
+            int sph = sphObj.getInt("sites_per_host");
+            assertTrue(sphMap.containsKey(hostId));
+            assertTrue(sphMap.get(hostId) == sph);
+        }
         assertEquals(1, topo.getInt("kfactor"));
         assertEquals(6, topo.getJSONArray("partitions").length());
 
@@ -173,7 +197,15 @@ public class TestClusterCompiler extends TestCase
         topology.put(1, "0");
         JSONObject topo = config.getTopology(topology);
         assertEquals(2, topo.getInt("hostcount"));
-        assertEquals(6, topo.getInt("sites_per_host"));
+        int size = topo.getJSONArray("host_id_to_sph").length();
+        assertEquals(sphMap.size(), size);
+        for (int ii = 0; ii < size; ii++) {
+            JSONObject sphObj = topo.getJSONArray("host_id_to_sph").getJSONObject(ii);
+            int hostId = sphObj.getInt("host_id");
+            int sph = sphObj.getInt("sites_per_host");
+            assertTrue(sphMap.containsKey(hostId));
+            assertTrue(sphMap.get(hostId) == sph);
+        }
         assertEquals(1, topo.getInt("kfactor"));
         assertEquals(6, topo.getJSONArray("partitions").length());
 
