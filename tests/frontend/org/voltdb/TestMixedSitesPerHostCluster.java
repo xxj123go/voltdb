@@ -95,7 +95,7 @@ public class TestMixedSitesPerHostCluster {
     public static void compileCatalog() throws IOException {
         // just use it to fool VoltDB compiler, use overrides CLI option to provide actual sitesperhost
         final int fakeSph = 2;
-        final int hostCount = 2;
+        final int hostCount = 3;
         m_builder.addLiteralSchema("CREATE TABLE V0 (id BIGINT);");
         m_builder.configureLogging(null, null, false, false, 200, Integer.MAX_VALUE, null);
         assertTrue(m_builder.compile(Configuration.getPathToCatalogForTest(JAR_NAME), fakeSph, hostCount, K));
